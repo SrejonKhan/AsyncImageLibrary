@@ -24,6 +24,11 @@ namespace AsyncImageLibrary
             queuedProcess.Add(process);
         }
 
+        public static void ClearAllQueue() 
+        {
+            queuedProcess.Clear();
+        }
+
         public static IEnumerator ExecuteProcessPerFrame()
         {
             if (queuedProcess.Count == 0) yield break;
