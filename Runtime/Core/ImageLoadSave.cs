@@ -12,7 +12,7 @@ namespace AsyncImageLibrary
     {
         public ImageLoadSave() { }
 
-        internal void Load(AsyncImage asyncImage, Action onComplete)
+        internal void Load(AsyncImage asyncImage)
         {
             if (string.IsNullOrEmpty(asyncImage.Path))
                 throw new ArgumentNullException("Image Path should not be null or empty.");
@@ -20,13 +20,13 @@ namespace AsyncImageLibrary
             // Initialize Unity Main Thread for thread sensitive call
             UnityMainThread.Init();
             // Initialize Queuer if queueing is required
-            if (asyncImage.shouldQueueTextureProcess) MainThreadQueuer.Init();
+            if (asyncImage.ShouldQueueTextureProcess) MainThreadQueuer.Init();
             // Setup Threadpool for current environment
             ThreadPool.SetMaxThreads(12, 12);
-            ThreadPool.QueueUserWorkItem(cb => LoadImageFromFile(asyncImage, onComplete));
+            ThreadPool.QueueUserWorkItem(cb => LoadImageFromFile(asyncImage));
         }
 
-        void LoadImageFromFile(AsyncImage asyncImage, Action onComplete)
+        void LoadImageFromFile(AsyncImage asyncImage)
         {
             var input = File.OpenRead(asyncImage.Path);
             var inputStream = new SKManagedStream(input);
@@ -40,7 +40,14 @@ namespace AsyncImageLibrary
 
             // Execute queued process
             asyncImage.isExecutingQueuedProcess = true;
-            asyncImage.queuedProcess?.Invoke();
+            try
+            {
+                asyncImage.queuedProcess?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Debug.Log(ex.Message);
+            }
             asyncImage.queuedProcess = null;
             asyncImage.isExecutingQueuedProcess = false;
 
@@ -53,27 +60,24 @@ namespace AsyncImageLibrary
                 c.Scale(1, -1, 0, asyncImage.Bitmap.Height / 2);
                 c.DrawBitmap(asyncImage.Bitmap, new SKPoint());
             }
+
             asyncImage.Bitmap = flippedBitmap;
             asyncImage.Width = bitmap.Width;
             asyncImage.Height = bitmap.Height;
 
-            // callback
-            Action callback = () => UnityMainThread.Execute(onComplete);
-
-            if (asyncImage.shouldGenerateTexture && callback != null)
+            if (asyncImage.ShouldGenerateTexture)
             {
                 Action generateTexture = () =>
-                    new ImageProcess().GenerateTexture(asyncImage, callback);
+                    new ImageProcess().GenerateTexture(asyncImage, asyncImage.OnTextureLoad);
 
-                if (asyncImage.shouldQueueTextureProcess)
+                if (asyncImage.ShouldQueueTextureProcess)
                     MainThreadQueuer.Queue(generateTexture);
                 else
                     UnityMainThread.Execute(generateTexture);
             }
-            else
-            {
-                callback?.Invoke();
-            }
+
+            if(asyncImage.OnLoad != null) 
+                UnityMainThread.Execute(asyncImage.OnLoad);
 
             input.Dispose();
             inputStream.Dispose();

@@ -6,7 +6,7 @@ namespace AsyncImageLibrary
 {
     internal class ImageProcess
     {
-        public void Resize(AsyncImage asyncImage, int divideBy, ResizeQuality quality)
+        public void Resize(AsyncImage asyncImage, int divideBy, ResizeQuality quality, Action onComplete)
         {
             if (divideBy <= 0)
                 throw new ArgumentException("DivideBy should not be less than Zero (0) or equal to Zero (0).");
@@ -14,15 +14,16 @@ namespace AsyncImageLibrary
             // If image isn't loaded yet, we will queue it for later
             if (asyncImage.Bitmap == null)
             {
-                asyncImage.queuedProcess += () => Resize(asyncImage, divideBy, quality);
+                asyncImage.queuedProcess += () => Resize(asyncImage, divideBy, quality, onComplete);
                 return;
             }
             var resizeInfo = new SKImageInfo(asyncImage.Bitmap.Width / divideBy, asyncImage.Bitmap.Height / divideBy);
             SKFilterQuality filterQuality = (SKFilterQuality)((int)quality);
             asyncImage.Bitmap = asyncImage.Bitmap.Resize(resizeInfo, filterQuality);
+            onComplete?.Invoke();
         }
 
-        internal void Resize(AsyncImage asyncImage, Vector2 targetDimensions, ResizeQuality quality)
+        internal void Resize(AsyncImage asyncImage, Vector2 targetDimensions, ResizeQuality quality, Action onComplete)
         {
             if (targetDimensions.x == 0 || targetDimensions.y == 0)
                 throw new ArgumentException("Target Dimensions should not be equal to Zero (0).");
@@ -30,15 +31,16 @@ namespace AsyncImageLibrary
             // If image isn't loaded yet, we will queue it for later
             if (asyncImage.Bitmap == null)
             {
-                asyncImage.queuedProcess += () => Resize(asyncImage, targetDimensions, quality);
+                asyncImage.queuedProcess += () => Resize(asyncImage, targetDimensions, quality, onComplete);
                 return;
             }
             var resizeInfo = new SKImageInfo((int)targetDimensions.x, (int)targetDimensions.y);
             SKFilterQuality filterQuality = (SKFilterQuality)((int)quality);
             asyncImage.Bitmap = asyncImage.Bitmap.Resize(resizeInfo, filterQuality);
+            onComplete?.Invoke();
         }
 
-        internal void DrawText(AsyncImage asyncImage, string text, Vector2 position, SKPaint paint, string fontFamilyName, Action onComplete) 
+        internal void DrawText(AsyncImage asyncImage, string text, Vector2 position, SKPaint paint, string fontFamilyName, Action onComplete)
         {
             // If image isn't loaded yet, we will queue it for later
             if (asyncImage.Bitmap == null)
@@ -47,17 +49,23 @@ namespace AsyncImageLibrary
                 return;
             }
             SKCanvas canvas = new SKCanvas(asyncImage.Bitmap);
-            using (var typeface = SKTypeface.FromFamilyName(fontFamilyName))
-            {  
-                canvas.DrawText(text, position.x, position.y, paint);
-            }
 
-            Action callback = () => onComplete?.Invoke();
+            // Fallback font
+            if (paint.Typeface == null)
+            {
+                paint.Typeface = SKTypeface.FromFamilyName(fontFamilyName);
+            }
+            // Draw Text
+            canvas.DrawText(text, position.x, position.y, paint);
 
             if (!asyncImage.isExecutingQueuedProcess)
-                UnityMainThread.Execute(() => GenerateTexture(asyncImage, callback)); // generate texture
+            {
+                UnityMainThread.Execute(() => GenerateTexture(asyncImage, asyncImage.OnTextureLoad)); // generate texture
+            }
+            onComplete?.Invoke();
 
             canvas.Dispose();
+            paint.Dispose();
         }
 
         internal void GenerateTexture(AsyncImage asyncImage, Action onComplete)
@@ -70,6 +78,15 @@ namespace AsyncImageLibrary
             asyncImage.Texture = texture;
             onComplete?.Invoke();
         }
-    }
 
+        //TEST ONLY
+        internal void Crop(AsyncImage asyncImage)
+        {
+            //int horizontal = asyncImage.Bitmap.Width - (asyncImage.Bitmap.Height / 50 * 50);
+            SKRectI cropRect = SKRectI.Create(1250, 1250, 2500, 2500);
+            SKBitmap newBitmap = new SKBitmap(cropRect.Width, cropRect.Height);
+            asyncImage.Bitmap.ExtractSubset(newBitmap, cropRect);
+            asyncImage.Bitmap = newBitmap;
+        }
+    }
 }

@@ -20,11 +20,21 @@ namespace AsyncImageLibrary
         private SKBitmap bitmap;
         public SKBitmap Bitmap { get => bitmap; internal set => bitmap = value; }
 
-        internal bool shouldGenerateTexture = true;
-        internal bool shouldQueueTextureProcess = false;
 
+        private bool shouldGenerateTexture = true;
+        public bool ShouldGenerateTexture { get => shouldGenerateTexture; set => shouldGenerateTexture = value; }
+
+        private bool shouldQueueTextureProcess = false;
+        public bool ShouldQueueTextureProcess { get => shouldQueueTextureProcess; set => shouldQueueTextureProcess = value; }
+                
         private Texture2D texture;
         public Texture2D Texture { get => texture; internal set => texture = value; }
+
+        private Action onTextureLoad;
+        public Action OnTextureLoad { get => onTextureLoad; set => onTextureLoad = value; }
+
+        private Action onLoad;
+        public Action OnLoad { get => onLoad; set => onLoad = value; }
 
         internal Action queuedProcess;
         internal bool isExecutingQueuedProcess = false;
@@ -36,7 +46,7 @@ namespace AsyncImageLibrary
             this.path = path;
         }
 
-        public AsyncImage(string path, bool shouldGenerateTexture, bool shouldQueueTextureProcess = false)
+        public AsyncImage(string path, bool shouldGenerateTexture = true, bool shouldQueueTextureProcess = false)
         {
             this.path = path;
             this.shouldGenerateTexture = shouldGenerateTexture;
@@ -48,36 +58,45 @@ namespace AsyncImageLibrary
             return new ImageLoadSave().GetImageInfo(path);
         }
 
-        public void Load(Action cb)
+        public void Load(Action cb = null)
         {
-            new ImageLoadSave().Load(this, cb);
+            onLoad = cb != null ? cb : onLoad;
+            new ImageLoadSave().Load(this);
         }
 
-        public void GenerateTexture()
+        public void GenerateTexture(Action cb = null)
         {
-            new ImageProcess().GenerateTexture(this, null);
+            if (bitmap == null)
+                throw new ArgumentNullException("Image has not loaded yet. Please load image by calling Load().");
+
+            onTextureLoad = cb != null ? cb : onTextureLoad;
+            new ImageProcess().GenerateTexture(this, onTextureLoad);
         }
 
-        public void Resize(int divideBy, ResizeQuality quality)
+        public void Resize(int divideBy, ResizeQuality quality, Action onComplete = null)
         {
             ThreadPool.QueueUserWorkItem(cb =>
-                new ImageProcess().Resize(this, divideBy, quality)
+                new ImageProcess().Resize(this, divideBy, quality, onComplete)
             );
         }
 
-        public void Resize(Vector2 targetDimensions, ResizeQuality quality)
+        public void Resize(Vector2 targetDimensions, ResizeQuality quality, Action onComplete = null)
         {
             ThreadPool.QueueUserWorkItem(cb =>
-                new ImageProcess().Resize(this, targetDimensions, quality)
+                new ImageProcess().Resize(this, targetDimensions, quality, onComplete) 
             );
         }
 
-        public void DrawText(string text, Vector2 position, SKPaint paint, string fontFamilyName = "Arial", Action onComplete = null)
+        public void DrawText(string text, Vector2 position, SKPaint paint, Action onComplete = null)
         {
-            new ImageProcess().DrawText(this, text, position, paint, fontFamilyName, onComplete);
+            if(paint == null)
+            {
+                throw new ArgumentNullException("SKPaint can not be null.");
+            }
+            new ImageProcess().DrawText(this, text, position, paint, "Arial", onComplete);
         }
 
-        public void DrawText(string text, Vector2 position, TextAlign textAlign, Color color, float textSize = 0, string fontFamilyName = "Arial", Action onComplete = null)
+        public void DrawText(string text, Vector2 position, TextAlign textAlign, Color color, float textSize, string fontFamilyName = "Arial", Action onComplete = null)
         {
             if (bitmap == null)
             {
@@ -89,8 +108,9 @@ namespace AsyncImageLibrary
 
             var paint = new SKPaint();
             paint.Color = SKColor.FromHsv(h * 360, s * 100, v * 100);
-            paint.TextSize = textSize == 0 ? bitmap.Width * 0.05f : textSize;
+            paint.TextSize = textSize;
             paint.TextAlign = (SKTextAlign)((int)textAlign);
+            paint.Typeface = SKTypeface.FromFamilyName(fontFamilyName);
 
             // execute in same thread where loading task is ongoing
             if (isExecutingQueuedProcess)
@@ -112,33 +132,17 @@ namespace AsyncImageLibrary
 
         public void Crop(Vector2 targetDimension)
         {
-            if (bitmap == null)
-            {
-                queuedProcess += () => Crop(new Vector2());
-                return;
-            }
-            int horizontal = bitmap.Width - (bitmap.Height / 50 * 50);
-            //SKImage image = SKImage.FromBitmap(bitmap);
-            SKRectI cropRect = SKRectI.Create(1250, 1250, 2500, 2500);
-            //var subset = image.Subset(SKRectI.Create(0, 0, 50, 50));
-            SKBitmap newBitmap = new SKBitmap(cropRect.Width, cropRect.Height);
-            bitmap.ExtractSubset(newBitmap, cropRect);
-            bitmap = newBitmap;
+            throw new NotImplementedException();
+            //if (bitmap == null)
+            //{
+            //    queuedProcess += () => Crop(new Vector2());
+            //    return;
+            //}
         }
 
-        public bool Save(string savePath)
+        public bool Save(string path)
         {
-            return new ImageLoadSave().TrySave(this, savePath);
+            return new ImageLoadSave().TrySave(this, path);
         }
-    }
-
-    public enum ResizeQuality
-    {
-        None, Low, Medium, High
-    }
-
-    public enum TextAlign
-    {
-        Left, Center, Right
     }
 }

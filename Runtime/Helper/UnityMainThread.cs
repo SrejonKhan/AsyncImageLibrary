@@ -14,7 +14,6 @@ namespace AsyncImageLibrary
 
         private static UnityMainThread instance;
 
-
         public static void Init()
         {
             if (instance != null) return;
