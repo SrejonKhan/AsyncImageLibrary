@@ -16,7 +16,7 @@ Load Image asynchronously from external environment without blocking Main-Thread
 
 # Installation
 
-Open Package Manager in Unity and Click on Plus Icon -> Add package from git URL, paste following link `https://github.com/SrejonKhan/AsyncImageLibrary.git` and click Add.
+Open Package Manager in Unity and Click on Plus Icon -> Add package from git URL, paste following link ```https://github.com/SrejonKhan/AsyncImageLibrary.git``` and click Add.
 
 Other methods (Asset Store, UPM, Release Page) will be added later after a stable release.
 
@@ -58,14 +58,13 @@ AsyncImage specifies an Image. It provides methods and properties for Loading, S
 | DrawText(string text, Vector2 position, TextAlign textAlign, Color color, float textSize, string fontFamilyName, Action onComplete) | Draw Text on Bitmap.  |
 | DrawText(string text, Vector2 position, SKPaint paint)   | Draw Text on Bitmap, proving SKPaint for styling   |
 | DrawText(string text, Vector2 position, SKPaint paint, Action onComplete)   | Draw Text on Bitmap, proving SKPaint for styling. Callback upon completion.   |
+| Save(string path, SKEncodedImageFormat format, int quality, Action<bool> onComplete)   | Save Image to specified format.   |
 
 #### Delegates
 | Name                      | Details |
 | --------------------------| ------------- |
 | OnLoad                    | Calls when Bitmap is loaded.      |
 | OnTextureLoad             | Calls when Texture2D is loaded.   |
-
-
 
 
 ## Loading Image

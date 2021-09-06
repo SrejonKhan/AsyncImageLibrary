@@ -14,19 +14,31 @@ namespace AsyncImageLibrary
 
         internal void Load(AsyncImage asyncImage)
         {
-            if (string.IsNullOrEmpty(asyncImage.Path))
-                throw new ArgumentNullException("Image Path should not be null or empty.");
-
             // Initialize Unity Main Thread for thread sensitive call
             UnityMainThread.Init();
             // Initialize Queuer if queueing is required
             if (asyncImage.ShouldQueueTextureProcess) MainThreadQueuer.Init();
             // Setup Threadpool for current environment
             ThreadPool.SetMaxThreads(12, 12);
-            ThreadPool.QueueUserWorkItem(cb => LoadImageFromFile(asyncImage));
+            // Load Bitmap
+            if (!string.IsNullOrEmpty(asyncImage.Path))
+            {
+                ThreadPool.QueueUserWorkItem(cb => LoadBitmapFromFileStream(asyncImage));
+            }
+            else if (asyncImage.Buffer != null)
+            {
+                ThreadPool.QueueUserWorkItem(cb => LoadBitmapFromBuffer(asyncImage));
+            }
         }
 
-        void LoadImageFromFile(AsyncImage asyncImage)
+        void LoadBitmapFromBuffer(AsyncImage asyncImage)
+        {
+            SKBitmap bitmap = SKBitmap.Decode(asyncImage.Buffer);
+            // Process Bitmap
+            ProcessBitmap(asyncImage, bitmap);
+        }
+
+        void LoadBitmapFromFileStream(AsyncImage asyncImage)
         {
             var input = File.OpenRead(asyncImage.Path);
             var inputStream = new SKManagedStream(input);
@@ -36,6 +48,15 @@ namespace AsyncImageLibrary
             SKBitmap bitmap = SKBitmap.Decode(inputStream);
             bitmap = ChangeOrientation(bitmap, encodedOrigin);
 
+            // Process Bitmap
+            ProcessBitmap(asyncImage, bitmap); 
+
+            input.Dispose();
+            inputStream.Dispose();
+        }
+
+        void ProcessBitmap(AsyncImage asyncImage, SKBitmap bitmap)
+        {
             asyncImage.Bitmap = bitmap;
 
             // Execute queued process
@@ -79,8 +100,7 @@ namespace AsyncImageLibrary
             if(asyncImage.OnLoad != null) 
                 UnityMainThread.Execute(asyncImage.OnLoad);
 
-            input.Dispose();
-            inputStream.Dispose();
+
         }
 
         SKEncodedOrigin ReadOrigin(string path)
@@ -94,12 +114,29 @@ namespace AsyncImageLibrary
             }
         }
 
-        internal (SKImageInfo, SKEncodedImageFormat) GetImageInfo(string path)
+        internal (SKImageInfo, SKEncodedImageFormat) GetImageInfo(AsyncImage asyncImage)
         {
-            using (var codec = SKCodec.Create(path))
+            if (asyncImage.Bitmap != null)
             {
-                return (codec.Info, codec.EncodedFormat);
+                IntPtr addr = asyncImage.Bitmap.GetPixels(out IntPtr length);
+
+                using (SKData skData = SKData.Create(addr, length.ToInt32()))
+                {
+                    using (var codec = SKCodec.Create(skData))
+                    {
+                        return (codec.Info, codec.EncodedFormat);
+                    }
+                }
             }
+            else if (!string.IsNullOrEmpty(asyncImage.Path))
+            {
+                using (var codec = SKCodec.Create(asyncImage.Path))
+                {
+                    return (codec.Info, codec.EncodedFormat);
+                }
+            }
+
+            return (default (SKImageInfo), default(SKEncodedImageFormat)); 
         }
 
         SKBitmap ChangeOrientation(SKBitmap bitmap, SKEncodedOrigin orientation)
@@ -146,17 +183,28 @@ namespace AsyncImageLibrary
             }
         }
 
-        internal bool TrySave(AsyncImage image, string path)
+        internal void TrySave(AsyncImage asyncImage, string path, SKEncodedImageFormat format, int quality, Action<bool> onComplete)
         {
+            // TODO - Flip Bitmap before save
             try
             {
-                image.Save(path);
-                return true;
+                using (MemoryStream memStream = new MemoryStream())
+                {
+                    using (SKManagedWStream wstream = new SKManagedWStream(memStream))
+                    {
+                        asyncImage.Bitmap.Encode(wstream, format, quality);
+                        byte[] data = memStream.ToArray();
+
+                        // save file
+                        File.WriteAllBytes(path, data);
+                    }
+                }
+                onComplete?.Invoke(true);
             }
             catch (Exception ex)
             {
                 Debug.LogError(ex.Message);
-                return false;
+                onComplete?.Invoke(false);
             }
         }
     }

@@ -17,6 +17,9 @@ namespace AsyncImageLibrary
         private string path;
         internal string Path { get => path; set => path = value; }
 
+        private byte[] buffer;
+        public byte[] Buffer { get => buffer; internal set => buffer = value; }
+
         private SKBitmap bitmap;
         public SKBitmap Bitmap { get => bitmap; internal set => bitmap = value; }
 
@@ -39,6 +42,8 @@ namespace AsyncImageLibrary
         internal Action queuedProcess;
         internal bool isExecutingQueuedProcess = false;
 
+        private bool constructedFromBuffer = false;
+
         public AsyncImage() { }
 
         public AsyncImage(string path)
@@ -53,9 +58,21 @@ namespace AsyncImageLibrary
             this.shouldQueueTextureProcess = shouldQueueTextureProcess;
         }
 
+        public AsyncImage(byte[] buffer)
+        {
+            constructedFromBuffer = true;
+            this.buffer = buffer;   
+        }
+
         public (SKImageInfo, SKEncodedImageFormat) GetInfo()
         {
-            return new ImageLoadSave().GetImageInfo(path);
+            if (constructedFromBuffer)
+                throw new NullReferenceException("Could not get info for AsyncImage that is constructed by Buffer.");
+
+            if(bitmap == null && string.IsNullOrEmpty(path))
+                throw new NullReferenceException("Could not get info for AsyncImage when Bitmap or Path is not present.");
+
+            return new ImageLoadSave().GetImageInfo(this);
         }
 
         public void Load(Action cb = null)
@@ -67,7 +84,7 @@ namespace AsyncImageLibrary
         public void GenerateTexture(Action cb = null)
         {
             if (bitmap == null)
-                throw new ArgumentNullException("Image has not loaded yet. Please load image by calling Load().");
+                throw new NullReferenceException("Image has not loaded yet. Please load image by calling Load().");
 
             onTextureLoad = cb != null ? cb : onTextureLoad;
             new ImageProcess().GenerateTexture(this, onTextureLoad);
@@ -140,9 +157,9 @@ namespace AsyncImageLibrary
             //}
         }
 
-        public bool Save(string path)
+        public void Save(string path, SKEncodedImageFormat format, int quality, Action<bool> onComplete = null)
         {
-            return new ImageLoadSave().TrySave(this, path);
+            new ImageLoadSave().TrySave(this, path, format, quality, onComplete);
         }
     }
 }
