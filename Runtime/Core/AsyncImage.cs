@@ -23,7 +23,6 @@ namespace AsyncImageLibrary
         private SKBitmap bitmap;
         public SKBitmap Bitmap { get => bitmap; internal set => bitmap = value; }
 
-
         private bool shouldGenerateTexture = true;
         public bool ShouldGenerateTexture { get => shouldGenerateTexture; set => shouldGenerateTexture = value; }
 
@@ -38,6 +37,9 @@ namespace AsyncImageLibrary
 
         private Action onLoad;
         public Action OnLoad { get => onLoad; set => onLoad = value; }
+
+        private Action<bool> onSave;
+        public Action<bool> OnSave { get => onSave; set => onSave = value; }
 
         internal Action queuedProcess;
         internal bool isExecutingQueuedProcess = false;
@@ -58,19 +60,22 @@ namespace AsyncImageLibrary
             this.shouldQueueTextureProcess = shouldQueueTextureProcess;
         }
 
-        public AsyncImage(byte[] buffer)
+        public AsyncImage(byte[] buffer, bool shouldGenerateTexture = true, bool shouldQueueTextureProcess = false)
         {
             constructedFromBuffer = true;
-            this.buffer = buffer;   
+            this.buffer = buffer;
+            this.shouldGenerateTexture = shouldGenerateTexture;
+            this.shouldQueueTextureProcess = shouldQueueTextureProcess;
         }
+
 
         public (SKImageInfo, SKEncodedImageFormat) GetInfo()
         {
             if (constructedFromBuffer)
                 throw new NullReferenceException("Could not get info for AsyncImage that is constructed by Buffer.");
 
-            if(bitmap == null && string.IsNullOrEmpty(path))
-                throw new NullReferenceException("Could not get info for AsyncImage when Bitmap or Path is not present.");
+            if(string.IsNullOrEmpty(path))
+                throw new NullReferenceException("Could not get info for AsyncImage when Path is not present.");
 
             return new ImageLoadSave().GetImageInfo(this);
         }
@@ -145,6 +150,7 @@ namespace AsyncImageLibrary
         public void OverlapImage()
         {
             // TODO - Overlap Image
+            throw new NotImplementedException();
         }
 
         public void Crop(Vector2 targetDimension)
@@ -159,7 +165,10 @@ namespace AsyncImageLibrary
 
         public void Save(string path, SKEncodedImageFormat format, int quality, Action<bool> onComplete = null)
         {
-            new ImageLoadSave().TrySave(this, path, format, quality, onComplete);
+            onSave = onComplete != null ? onComplete : onSave;
+
+            ThreadPool.QueueUserWorkItem(cb => 
+                new ImageLoadSave().TrySave(this, path, format, quality));
         }
     }
 }

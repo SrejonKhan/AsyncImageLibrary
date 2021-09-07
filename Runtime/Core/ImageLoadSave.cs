@@ -49,7 +49,7 @@ namespace AsyncImageLibrary
             bitmap = ChangeOrientation(bitmap, encodedOrigin);
 
             // Process Bitmap
-            ProcessBitmap(asyncImage, bitmap); 
+            ProcessBitmap(asyncImage, bitmap);
 
             input.Dispose();
             inputStream.Dispose();
@@ -73,14 +73,7 @@ namespace AsyncImageLibrary
             asyncImage.isExecutingQueuedProcess = false;
 
             // Flip image
-            SKBitmap flippedBitmap = new SKBitmap(asyncImage.Bitmap.Width, asyncImage.Bitmap.Height);
-
-            using (SKCanvas c = new SKCanvas(flippedBitmap))
-            {
-                c.Clear();
-                c.Scale(1, -1, 0, asyncImage.Bitmap.Height / 2);
-                c.DrawBitmap(asyncImage.Bitmap, new SKPoint());
-            }
+            SKBitmap flippedBitmap = FlipBitmap(asyncImage.Bitmap);
 
             asyncImage.Bitmap = flippedBitmap;
             asyncImage.Width = bitmap.Width;
@@ -97,10 +90,21 @@ namespace AsyncImageLibrary
                     UnityMainThread.Execute(generateTexture);
             }
 
-            if(asyncImage.OnLoad != null) 
+            if (asyncImage.OnLoad != null)
                 UnityMainThread.Execute(asyncImage.OnLoad);
+        }
 
+        SKBitmap FlipBitmap(SKBitmap bitmap)
+        {
+            SKBitmap flippedBitmap = new SKBitmap(bitmap.Width, bitmap.Height);
 
+            using (SKCanvas c = new SKCanvas(flippedBitmap))
+            {
+                c.Clear();
+                c.Scale(1, -1, 0, bitmap.Height / 2);
+                c.DrawBitmap(bitmap, new SKPoint());
+            }
+            return flippedBitmap;
         }
 
         SKEncodedOrigin ReadOrigin(string path)
@@ -116,27 +120,10 @@ namespace AsyncImageLibrary
 
         internal (SKImageInfo, SKEncodedImageFormat) GetImageInfo(AsyncImage asyncImage)
         {
-            if (asyncImage.Bitmap != null)
+            using (var codec = SKCodec.Create(asyncImage.Path))
             {
-                IntPtr addr = asyncImage.Bitmap.GetPixels(out IntPtr length);
-
-                using (SKData skData = SKData.Create(addr, length.ToInt32()))
-                {
-                    using (var codec = SKCodec.Create(skData))
-                    {
-                        return (codec.Info, codec.EncodedFormat);
-                    }
-                }
+                return (codec.Info, codec.EncodedFormat);
             }
-            else if (!string.IsNullOrEmpty(asyncImage.Path))
-            {
-                using (var codec = SKCodec.Create(asyncImage.Path))
-                {
-                    return (codec.Info, codec.EncodedFormat);
-                }
-            }
-
-            return (default (SKImageInfo), default(SKEncodedImageFormat)); 
         }
 
         SKBitmap ChangeOrientation(SKBitmap bitmap, SKEncodedOrigin orientation)
@@ -183,28 +170,29 @@ namespace AsyncImageLibrary
             }
         }
 
-        internal void TrySave(AsyncImage asyncImage, string path, SKEncodedImageFormat format, int quality, Action<bool> onComplete)
+        internal void TrySave(AsyncImage asyncImage, string path, SKEncodedImageFormat format, int quality)
         {
-            // TODO - Flip Bitmap before save
             try
             {
                 using (MemoryStream memStream = new MemoryStream())
                 {
                     using (SKManagedWStream wstream = new SKManagedWStream(memStream))
                     {
-                        asyncImage.Bitmap.Encode(wstream, format, quality);
+                        SKBitmap flippedBitmap = FlipBitmap(asyncImage.Bitmap);
+
+                        flippedBitmap.Encode(wstream, format, quality);
                         byte[] data = memStream.ToArray();
 
                         // save file
                         File.WriteAllBytes(path, data);
                     }
                 }
-                onComplete?.Invoke(true);
+                asyncImage.OnSave?.Invoke(true);
             }
             catch (Exception ex)
             {
                 Debug.LogError(ex.Message);
-                onComplete?.Invoke(false);
+                asyncImage.OnSave?.Invoke(false);
             }
         }
     }
