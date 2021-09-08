@@ -36,7 +36,7 @@ namespace AsyncImageLibrary
             for (int i = 0; i < queuedProcess.Count; i++)
             {
                 queuedProcess[i].Invoke();
-                yield return null; // wait a frame
+                yield return new WaitForEndOfFrame(); // wait a frame
             }
             queuedProcess.Clear();
         }

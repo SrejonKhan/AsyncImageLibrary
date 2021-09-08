@@ -292,24 +292,20 @@ var (info, format) = image.GetInfo();
 
 string text = "Leaves are on the ground, fall has come.";
 
-Func<SKPaint> paintFunc = () => 
-{
-    var paint = new SKPaint();
-    // Convert RGB color to HSV color
-    Color.RGBToHSV(Color.white, out float h, out float s, out float v); 
-    paint.Color = SKColor.FromHsv(h * 360, s * 100, v * 100);
-    // Text Align
-    paint.TextAlign = SKTextAlign.Center;
-    // Loading Font from file
-    paint.Typeface = SKTypeface.FromFile(@"E:\Font\Hack-Italic.ttf", 0);
-    // Adjust TextSize property so text is 90% of screen width
-    float textWidth = paint.MeasureText(text);
-    paint.TextSize = 0.9f * info.Width * paint.TextSize / textWidth;
-    return paint;
-}; 
+var paint = new SKPaint();
+// Convert RGB color to HSV color
+Color.RGBToHSV(Color.white, out float h, out float s, out float v); 
+paint.Color = SKColor.FromHsv(h * 360, s * 100, v * 100);
+// Text Align
+paint.TextAlign = SKTextAlign.Center;
+// Loading Font from file
+paint.Typeface = SKTypeface.FromFile(@"E:\Font\Hack-Italic.ttf", 0);
+// Adjust TextSize property so text is 90% of screen width
+float textWidth = paint.MeasureText(text);
+paint.TextSize = 0.9f * info.Width * paint.TextSize / textWidth;
 
 // drawing text at the center (vertically and horizontally) 
-image.DrawText(text, new Vector2(info.Width / 2, info.Height/2), paintFunc);
+image.DrawText(text, new Vector2(info.Width / 2, info.Height/2), paint);
 
 image.OnTextureLoad += MethodA;
 image.Load();
