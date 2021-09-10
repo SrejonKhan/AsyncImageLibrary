@@ -46,13 +46,26 @@ namespace AsyncImageLibrary
 
         private bool constructedFromBuffer = false;
 
+        /// <summary>
+        /// Default Constructor. Every property sets to default value. Path or Buffer should be set before loading.
+        /// </summary>
         public AsyncImage() { }
 
+        /// <summary>
+        /// Constructor for creating Bitmap from Local File Path.
+        /// </summary>
+        /// <param name="path">Path of Local File</param>
         public AsyncImage(string path)
         {
             this.path = path;
         }
 
+        /// <summary>
+        /// Constructor for creating Bitmap from Local File Path.     
+        /// </summary>
+        /// <param name="path">Local File Path</param>
+        /// <param name="shouldGenerateTexture">Generate Texture2D when Bitmap is loaded.</param>
+        /// <param name="shouldQueueTextureProcess">Queue Texture Generation Progress in Main Thread without executing.</param>
         public AsyncImage(string path, bool shouldGenerateTexture = true, bool shouldQueueTextureProcess = false)
         {
             this.path = path;
@@ -60,6 +73,12 @@ namespace AsyncImageLibrary
             this.shouldQueueTextureProcess = shouldQueueTextureProcess;
         }
 
+        /// <summary>
+        /// Constuctor for creating Bitmap from Buffer. Suitable for creating Bitmap from Remote Image Buffer.
+        /// </summary>
+        /// <param name="buffer">File Buffer</param>
+        /// <param name="shouldGenerateTexture">Generate Texture2D when Bitmap is loaded.</param>
+        /// <param name="shouldQueueTextureProcess">Queue Texture Generation Progress in Main Thread without executing.</param>
         public AsyncImage(byte[] buffer, bool shouldGenerateTexture = true, bool shouldQueueTextureProcess = false)
         {
             constructedFromBuffer = true;
@@ -68,7 +87,10 @@ namespace AsyncImageLibrary
             this.shouldQueueTextureProcess = shouldQueueTextureProcess;
         }
 
-
+        /// <summary>
+        /// Get Info of Image without loading it. Applicable for only local file.     
+        /// </summary>
+        /// <returns>SKImageInfo & SKEncodedImageFormat</returns>
         public (SKImageInfo, SKEncodedImageFormat) GetInfo()
         {
             if (constructedFromBuffer)
@@ -80,12 +102,20 @@ namespace AsyncImageLibrary
             return new ImageLoadSave().GetImageInfo(this);
         }
 
+        /// <summary>
+        /// Load Bitmap from given path
+        /// </summary>
+        /// <param name="cb">Callback upon loaded. Overwrites OnLoad delegates.</param>
         public void Load(Action cb = null)
         {
             onLoad = cb != null ? cb : onLoad;
             new ImageLoadSave().Load(this);
         }
 
+        /// <summary>
+        /// Generate Texture2D from Bitmap. If Bitmap is not loaded, this will be queued for execute after Bitmaps load.
+        /// </summary>
+        /// <param name="cb">Callback upon loaded. Overwrites OnTextureLoad delegates.</param>
         public void GenerateTexture(Action cb = null)
         {
             if (bitmap == null)
@@ -95,6 +125,12 @@ namespace AsyncImageLibrary
             new ImageProcess().GenerateTexture(this, onTextureLoad);
         }
 
+        /// <summary>
+        /// Resize Bitmap to (Actual Dimension / divideBy)
+        /// </summary>
+        /// <param name="divideBy">Integer to divide actual dimension.</param>
+        /// <param name="quality">Resize Quality</param>
+        /// <param name="onComplete">Callback upon Resize Completes.</param>
         public void Resize(int divideBy, ResizeQuality quality, Action onComplete = null)
         {
             ThreadPool.QueueUserWorkItem(cb =>
@@ -102,6 +138,12 @@ namespace AsyncImageLibrary
             );
         }
 
+        /// <summary>
+        /// Resize Bitmap to Target Dimensions.
+        /// </summary>
+        /// <param name="targetDimensions">X Axis is Width, Y Axis is Height</param>
+        /// <param name="quality">Resize Quality</param>
+        /// <param name="onComplete">Callback upon Resize Completes.</param>
         public void Resize(Vector2 targetDimensions, ResizeQuality quality, Action onComplete = null)
         {
             ThreadPool.QueueUserWorkItem(cb =>
@@ -109,6 +151,13 @@ namespace AsyncImageLibrary
             );
         }
 
+        /// <summary>
+        /// Draw Text on Bitmap
+        /// </summary>
+        /// <param name="text">Text to Draw</param>
+        /// <param name="position">Position in Bitmap</param>
+        /// <param name="paint">SKPaint for Styling</param>
+        /// <param name="onComplete">Callback upon DrawText completes.</param>
         public void DrawText(string text, Vector2 position, SKPaint paint, Action onComplete = null)
         {
             if(paint == null)
@@ -118,6 +167,16 @@ namespace AsyncImageLibrary
             new ImageProcess().DrawText(this, text, position, paint, "Arial", onComplete);
         }
 
+        /// <summary>
+        /// Draw Text on Bitmap
+        /// </summary>
+        /// <param name="text">Text to Draw</param>
+        /// <param name="position">Position in Bitmap</param>
+        /// <param name="textAlign">TextAlign of Text</param>
+        /// <param name="color">Text Color</param>
+        /// <param name="textSize">Text Size in Pixel Format.</param>
+        /// <param name="fontFamilyName">Font Family Name. Default is Arial.</param>
+        /// <param name="onComplete">Callback upon DrawText completes.</param>
         public void DrawText(string text, Vector2 position, TextAlign textAlign, Color color, float textSize, string fontFamilyName = "Arial", Action onComplete = null)
         {
             if (bitmap == null)
@@ -163,6 +222,13 @@ namespace AsyncImageLibrary
             //}
         }
 
+        /// <summary>
+        /// Save Bitmap to Local File
+        /// </summary>
+        /// <param name="path">Save Path with Filename and Extension</param>
+        /// <param name="format">Image Format</param>
+        /// <param name="quality">Save Quality</param>
+        /// <param name="onComplete">Callback upon save. Overwrites OnSave delegates.</param>
         public void Save(string path, SKEncodedImageFormat format, int quality, Action<bool> onComplete = null)
         {
             onSave = onComplete != null ? onComplete : onSave;
