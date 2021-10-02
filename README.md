@@ -9,7 +9,7 @@ Load Image asynchronously from external environment without blocking Main-Thread
   - [x] Windows (Mono)
   - [x] Android (IL2CPP)
   - [x] Android (Mono)
-  - [ ] iOS (IL2CPP)
+  - [x] iOS (IL2CPP)
   - [ ] Mac
   - [ ] Linux Distribution
 - [Sample Project](https://github.com/SrejonKhan/AsyncImageLibrary-Sample)
