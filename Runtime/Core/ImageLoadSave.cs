@@ -19,7 +19,7 @@ namespace AsyncImageLibrary
             // Initialize Queuer if queueing is required
             if (asyncImage.ShouldQueueTextureProcess) MainThreadQueuer.Init();
             // Setup Threadpool for current environment
-            ThreadPool.SetMaxThreads(12, 12);
+            ThreadPool.SetMaxThreads(Environment.ProcessorCount, Environment.ProcessorCount);
             // Load Bitmap
             if (!string.IsNullOrEmpty(asyncImage.Path))
             {
