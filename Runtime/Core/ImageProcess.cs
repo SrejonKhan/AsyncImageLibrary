@@ -20,9 +20,9 @@ namespace AsyncImageLibrary
             var resizeInfo = new SKImageInfo(asyncImage.Bitmap.Width / divideBy, asyncImage.Bitmap.Height / divideBy);
             SKFilterQuality filterQuality = (SKFilterQuality)((int)quality);
             asyncImage.Bitmap = asyncImage.Bitmap.Resize(resizeInfo, filterQuality);
-            
+
             // callback
-            if(onComplete != null) UnityMainThread.Execute(onComplete);
+            if (onComplete != null) UnityMainThread.Execute(onComplete);
         }
 
         internal void Resize(AsyncImage asyncImage, Vector2 targetDimensions, ResizeQuality quality, Action onComplete)
@@ -62,14 +62,9 @@ namespace AsyncImageLibrary
             // Draw Text
             canvas.DrawText(text, position.x, position.y, paint);
 
-            if (!asyncImage.isExecutingQueuedProcess)
-            {
-                UnityMainThread.Execute(() => GenerateTexture(asyncImage, asyncImage.OnTextureLoad)); // generate texture
-            }
             onComplete?.Invoke();
 
             canvas.Dispose();
-            paint.Dispose();
         }
 
         internal void GenerateTexture(AsyncImage asyncImage, Action onComplete)
