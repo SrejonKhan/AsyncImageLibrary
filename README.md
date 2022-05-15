@@ -103,20 +103,9 @@ image.Load();
 
 ```csharp
 string remoteImageUrl = "https://example.com/image.png";
-using (UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(remoteImageUrl))
-{
-    yield return uwr.SendWebRequest();
 
-    if (uwr.result == UnityWebRequest.Result.ConnectionError || uwr.result == UnityWebRequest.Result.ProtocolError)
-    {
-        Debug.LogError("Error - " + uwr.error);
-    }
-    else
-    {
-        AsyncImage asyncImage = new AsyncImage(uwr.downloadHandler.data);
-        asyncImage.Load();
-    }
-}
+AsyncImage image = new AsyncImage(remoteImageUrl);
+image.Load();
 ```
 
 ## Loading Texture

@@ -1,10 +1,12 @@
 ﻿using SkiaSharp;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace AsyncImageLibrary
 {
@@ -23,7 +25,11 @@ namespace AsyncImageLibrary
             // Load Bitmap
             if (!string.IsNullOrEmpty(asyncImage.Path))
             {
-                ThreadPool.QueueUserWorkItem(cb => LoadBitmapFromFileStream(asyncImage));
+                // android / remote file
+                if (asyncImage.Path.Contains("://") || asyncImage.Path.Contains(":///"))
+                    StaticCoroutine.StartCoroutine(LoadBufferUwr(asyncImage));
+                else
+                    ThreadPool.QueueUserWorkItem(cb => LoadBitmapFromFileStream(asyncImage));
             }
             else if (asyncImage.Buffer != null)
             {
@@ -53,6 +59,23 @@ namespace AsyncImageLibrary
 
             input.Dispose();
             inputStream.Dispose();
+        }
+
+        IEnumerator LoadBufferUwr(AsyncImage asyncImage)
+        {
+            using (UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(asyncImage.Path))
+            {
+                yield return uwr.SendWebRequest();
+
+                if (uwr.result == UnityWebRequest.Result.ConnectionError || uwr.result == UnityWebRequest.Result.DataProcessingError)
+                {
+                    Debug.LogError(uwr.error);
+                    yield break;
+                }
+
+                asyncImage.Buffer = uwr.downloadHandler.data;
+                ThreadPool.QueueUserWorkItem(cb => LoadBitmapFromBuffer(asyncImage));
+            }
         }
 
         void ProcessBitmap(AsyncImage asyncImage, SKBitmap bitmap)
