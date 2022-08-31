@@ -228,5 +228,27 @@ namespace AsyncImageLibrary
                 asyncImage.OnSave?.Invoke(false);
             }
         }
+
+        internal byte[] GetEncodedBuffer(AsyncImage asyncImage, SKEncodedImageFormat format, int quality)
+        {
+            byte[] buffer = null;
+            try
+            {
+                using (MemoryStream memStream = new MemoryStream())
+                    using (SKManagedWStream wstream = new SKManagedWStream(memStream))
+                    {
+                        SKBitmap flippedBitmap = FlipBitmap(asyncImage.Bitmap);
+
+                        flippedBitmap.Encode(wstream, format, quality);
+                        buffer = memStream.ToArray();
+                    }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex.Message);
+            }
+
+            return buffer;
+        }
     }
 }

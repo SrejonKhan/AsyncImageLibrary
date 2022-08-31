@@ -251,5 +251,10 @@ namespace AsyncImageLibrary
             ThreadPool.QueueUserWorkItem(cb => 
                 new ImageLoadSave().TrySave(this, path, format, quality));
         }
+
+        public byte[] GetEncodedBuffer(SKEncodedImageFormat format, int quality)
+        {
+            return new ImageLoadSave().GetEncodedBuffer(this, format, quality);
+        }
     }
 }
