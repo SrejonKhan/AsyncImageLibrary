@@ -9,10 +9,10 @@ namespace AsyncImageLibrary
     public class AsyncImage
     {
         private int width;
-        public int Width { get => width; internal set => width = value; }
+        public int Width { get => bitmap != null ? bitmap.Width : width; internal set => width = value; }
 
         private int height;
-        public int Height { get => height; internal set => height = value; }
+        public int Height { get => bitmap != null ? bitmap.Width : width; internal set => height = value; }
 
         private string path;
         internal string Path { get => path; set => path = value; }
@@ -88,18 +88,27 @@ namespace AsyncImageLibrary
         }
 
         /// <summary>
+        /// Get Info of from loaded Bitmap. Works when Image is loaded.     
+        /// </summary>
+        /// <returns>SKImageInfo & SKEncodedImageFormat</returns>
+        public (SKImageInfo?, SKEncodedImageFormat?) GetInfoFromBitmap()
+        {
+            if (bitmap == null)
+                throw new NullReferenceException("Image has not loaded yet. Please load image by calling Load().");
+
+            return new ImageLoadSave().GetImageInfoFromBitmap(this);
+        }
+
+        /// <summary>
         /// Get Info of Image without loading it. Applicable for only local file.     
         /// </summary>
         /// <returns>SKImageInfo & SKEncodedImageFormat</returns>
-        public (SKImageInfo, SKEncodedImageFormat) GetInfo()
+        public (SKImageInfo?, SKEncodedImageFormat?) GetInfoFromFile()
         {
-            if (constructedFromBuffer)
-                throw new NullReferenceException("Could not get info for AsyncImage that is constructed by Buffer.");
-
-            if(string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path))
                 throw new NullReferenceException("Could not get info for AsyncImage when Path is not present.");
 
-            return new ImageLoadSave().GetImageInfo(this);
+            return new ImageLoadSave().GetImageInfoFromFile(this);
         }
 
         /// <summary>
@@ -212,14 +221,20 @@ namespace AsyncImageLibrary
             throw new NotImplementedException();
         }
 
-        public void Crop(Vector2 targetDimension)
+        /// <summary>
+        /// Crop bitmap
+        /// </summary>
+        /// <param name="position">From where to start rect</param>
+        /// <param name="targetDimension">Rect size</param>
+        public void Crop(Vector2 position, Vector2 targetDimension)
         {
-            throw new NotImplementedException();
-            //if (bitmap == null)
-            //{
-            //    queuedProcess += () => Crop(new Vector2());
-            //    return;
-            //}
+            if (bitmap == null)
+            {
+                queuedProcess += () => Crop(position, targetDimension);
+                return;
+            }
+
+            new ImageProcess().Crop(this, position, targetDimension);
         }
 
         /// <summary>

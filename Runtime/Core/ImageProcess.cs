@@ -78,14 +78,13 @@ namespace AsyncImageLibrary
             onComplete?.Invoke();
         }
 
-        //TEST ONLY
-        internal void Crop(AsyncImage asyncImage)
+        internal void Crop(AsyncImage asyncImage, Vector2 position, Vector2 targetDimension)
         {
-            //int horizontal = asyncImage.Bitmap.Width - (asyncImage.Bitmap.Height / 50 * 50);
-            SKRectI cropRect = SKRectI.Create(1250, 1250, 2500, 2500);
+            SKRectI cropRect = SKRectI.Create((int)position.x, (int)position.y, (int)targetDimension.x, (int)targetDimension.y);
             SKBitmap newBitmap = new SKBitmap(cropRect.Width, cropRect.Height);
             asyncImage.Bitmap.ExtractSubset(newBitmap, cropRect);
             asyncImage.Bitmap = newBitmap;
+
         }
     }
 }

@@ -141,7 +141,17 @@ namespace AsyncImageLibrary
             }
         }
 
-        internal (SKImageInfo, SKEncodedImageFormat) GetImageInfo(AsyncImage asyncImage)
+        internal (SKImageInfo?, SKEncodedImageFormat?) GetImageInfoFromBitmap(AsyncImage asyncImage)
+        {
+            if(asyncImage.Bitmap != null) 
+            {
+                SKImageInfo info = new SKImageInfo(asyncImage.Bitmap.Width, asyncImage.Bitmap.Height);
+                return (info, null);
+            }
+            return (null, null);
+        }   
+
+        internal (SKImageInfo? info, SKEncodedImageFormat? encodedFormat) GetImageInfoFromFile(AsyncImage asyncImage)
         {
             using (var codec = SKCodec.Create(asyncImage.Path))
             {
