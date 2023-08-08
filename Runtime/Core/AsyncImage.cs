@@ -12,7 +12,7 @@ namespace AsyncImageLibrary
         public int Width { get => bitmap != null ? bitmap.Width : width; internal set => width = value; }
 
         private int height;
-        public int Height { get => bitmap != null ? bitmap.Width : width; internal set => height = value; }
+        public int Height { get => bitmap != null ? bitmap.Height : height; internal set => height = value; }
 
         private string path;
         internal string Path { get => path; set => path = value; }
