@@ -2,7 +2,7 @@
 
 Load Image asynchronously from external environment without blocking Main-Thread. And powerful SkiaSharp Library implemented and wrapped for better and convenient usage.
 
-- SkiaSharp Version - 2.80.3
+- SkiaSharp Version - 2.88.3
 - Unity Version - 2019.3.x or newer
 - Build Support (Tested Only) -
   - [x] Windows (IL2CPP)
@@ -11,7 +11,7 @@ Load Image asynchronously from external environment without blocking Main-Thread
   - [x] Android (Mono)
   - [x] iOS (IL2CPP)
   - [ ] Mac
-  - [ ] Linux Distribution
+  - [x] Linux Distribution (Ubuntu tested)
 - [Sample Project](https://github.com/SrejonKhan/AsyncImageLibrary-Sample)
 
 # Installation
@@ -72,8 +72,8 @@ AsyncImage specifies an Image. It provides methods and properties for Loading, S
 | GenerateTexture(Action cb)                                                                                                          | Generate Texture2D from Bitmap. Get queued when Bitmap is not loaded. Callback when texture is generated. (Same as `OnLoad` delegate) |
 | Save(string path, SKEncodedImageFormat format, int quality)                                                                         | Save Image to specified format.                                                                                                       |
 | Save(string path, SKEncodedImageFormat format, int quality, Action<bool> onComplete)                                                | Save Image to specified format.                                                                                                       |
-| GetEncodedBuffer(SKEncodedImageFormat format, int quality) | Get Encoded Byte Array of Bitmap |
-| Crop(Vector2 position, Vector2 targetDimension)        | Crop Bitmap to specified size in specified rect position.    |
+| GetEncodedBuffer(SKEncodedImageFormat format, int quality)                                                                          | Get Encoded Byte Array of Bitmap                                                                                                      |
+| Crop(Vector2 position, Vector2 targetDimension)                                                                                     | Crop Bitmap to specified size in specified rect position.                                                                             |
 | Resize(int divideBy, ResizeQuality quality)                                                                                         | Resize to (Actual Dimension / divideBy).                                                                                              |
 | Resize(int divideBy, ResizeQuality quality, Action onComplete)                                                                      | Resize to (Actual Dimension / divideBy). Callback when completed.                                                                     |
 | Resize(Vector2 targetDimensions, ResizeQuality quality)                                                                             | Resize to given dimension.                                                                                                            |
