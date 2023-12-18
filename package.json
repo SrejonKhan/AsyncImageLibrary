@@ -1,6 +1,6 @@
 {
   "name": "com.srejonkhan.asyncimagelibrary",
-  "version": "0.2.0-preview.1",
+  "version": "0.2.0",
   "displayName": "Async Image Library",
   "description": "Load Image asynchronously from external environment without blocking Main-Thread. And powerful SkiaSharp Library implemented and wrapped for better and convenient usage.",
   "unity": "2019.1",
