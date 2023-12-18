@@ -1,3 +1,15 @@
+## [0.2.0] - 18-12-2023
+
+### Added
+
+- OpenUPM registry.
+
+### Changed
+
+- Bumped library version to 0.2.0.
+- Updated README with new information (versions).
+- Updated libSkiaSharp for Linux.
+
 ## [0.2.0-preview.1] - 16-08-2023
 
 Update SkiaSharp dependency
