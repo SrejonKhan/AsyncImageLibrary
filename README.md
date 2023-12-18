@@ -16,15 +16,25 @@ Load Image asynchronously from external environment without blocking Main-Thread
 
 # Installation
 
+## Using Git
+
 Open Package Manager in Unity and Click on Plus Icon -> Add package from git URL, paste following link
 
-```
+```console
 https://github.com/SrejonKhan/AsyncImageLibrary.git
 ```
 
 and click Add.
 
-Other methods (Asset Store, UPM, Release Page) will be added later after a stable release.
+## Using OpenUPM
+
+This package is available at [OpenUPM](https://openupm.com/packages/com.srejonkhan.asyncimagelibrary/). To install with `openupm-cli` -
+
+```console
+openupm add com.srejonkhan.asyncimagelibrary
+```
+
+Other methods (Asset Store, Release Page) will be added later after a stable release.
 
 # Manual
 
