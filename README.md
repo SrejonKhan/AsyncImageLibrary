@@ -63,6 +63,7 @@ AsyncImage specifies an Image. It provides methods and properties for Loading, S
 | Width\*                   | Width of Image                                                        |
 | Height\*                  | Height of Image                                                       |
 | Path                      | Local file path of Image                                              |
+| IsPathValidated           | If the assigned path is validated by calling `ValidatePath()`         |
 | Bitmap\*                  | SKBitmap reference                                                    |
 | Texture\*\*               | Texture2D of Image                                                    |
 | ShouldGenerateTexture     | Generate Texture along with Bitmap, if true.                          |
