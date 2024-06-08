@@ -46,6 +46,12 @@ namespace AsyncImageLibrary
 
         void LoadBitmapFromFileStream(AsyncImage asyncImage)
         {
+            // validate the file path
+            if (asyncImage.IsPathValidated == null) 
+                ValidatePath(asyncImage);
+            if (!(bool)asyncImage.IsPathValidated)
+                return;
+
             var input = File.OpenRead(asyncImage.Path);
             var inputStream = new SKManagedStream(input);
             var encodedOrigin = ReadOrigin(asyncImage.Path);
@@ -63,6 +69,11 @@ namespace AsyncImageLibrary
 
         IEnumerator LoadBufferUwr(AsyncImage asyncImage)
         {
+            // check if remote image exist by sending a HEAD req
+            yield return DryUwrValidatePath(asyncImage);
+            if (!(bool)asyncImage.IsPathValidated)
+                yield break;
+
             using (UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(asyncImage.Path))
             {
                 yield return uwr.SendWebRequest();
@@ -153,6 +164,12 @@ namespace AsyncImageLibrary
 
         internal (SKImageInfo? info, SKEncodedImageFormat? encodedFormat) GetImageInfoFromFile(AsyncImage asyncImage)
         {
+            // validate the file path
+            if (asyncImage.IsPathValidated == null)
+                ValidatePath(asyncImage);
+            if (!(bool)asyncImage.IsPathValidated)
+                return (null, null);
+
             using (var codec = SKCodec.Create(asyncImage.Path))
             {
                 return (codec.Info, codec.EncodedFormat);
@@ -249,6 +266,50 @@ namespace AsyncImageLibrary
             }
 
             return buffer;
+        }
+
+        internal void ValidatePath(AsyncImage asyncImage)
+        {
+            if (string.IsNullOrEmpty(asyncImage.Path))
+            {
+                asyncImage.IsPathValidated = false;
+                asyncImage.OnPathValidation.Invoke(false);
+                return;
+            }
+
+            // android / remote file
+            if (asyncImage.Path.Contains("://") || asyncImage.Path.Contains(":///"))
+            {
+                StaticCoroutine.StartCoroutine(DryUwrValidatePath(asyncImage));
+                return;
+            }
+
+            if (!File.Exists(asyncImage.Path))
+            {
+                asyncImage.IsPathValidated = false;
+                asyncImage.OnPathValidation.Invoke(false);
+                return;
+            }
+            asyncImage.IsPathValidated = true;
+            asyncImage.OnPathValidation.Invoke(true);
+        }
+
+        private IEnumerator DryUwrValidatePath(AsyncImage asyncImage)
+        {
+            // check if remote image exist by sending a HEAD req
+            using (UnityWebRequest headReq = UnityWebRequest.Head(asyncImage.Path))
+            {
+                yield return headReq.SendWebRequest();
+
+                if (!(headReq.responseCode >= 200 && headReq.responseCode < 300))
+                {
+                    asyncImage.IsPathValidated = false;
+                    asyncImage.OnPathValidation?.Invoke(false);
+                    yield break;
+                }
+            }
+            asyncImage.IsPathValidated = true;
+            asyncImage.OnPathValidation?.Invoke(true);
         }
     }
 }

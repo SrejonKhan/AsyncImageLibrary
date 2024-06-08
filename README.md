@@ -76,6 +76,7 @@ AsyncImage specifies an Image. It provides methods and properties for Loading, S
 
 | Name                                                                                                                                | Details                                                                                                                               |
 | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| ValidatePath()                                                                                                                      | Validate assigned Path of Image without loading it.                                                                                   |
 | Load()                                                                                                                              | Load Bitmap from given path.                                                                                                          |
 | Load(Action cb)                                                                                                                     | Load Bitmap from given path and callback upon completion.                                                                             |
 | GenerateTexture()                                                                                                                   | Generate Texture2D from Bitmap. If Bitmap is not loaded, **this will be queued for execute after Bitmaps load**.                      |
@@ -96,11 +97,12 @@ AsyncImage specifies an Image. It provides methods and properties for Loading, S
 
 #### Delegates
 
-| Name          | Details                            |
-| ------------- | ---------------------------------- |
-| OnLoad        | Callback when Bitmap is loaded.    |
-| OnSave        | Callback when Bitmap is saved.     |
-| OnTextureLoad | Callback when Texture2D is loaded. |
+| Name             | Details                                                        |
+| ---------------- | -------------------------------------------------------------- |
+| OnLoad           | Callback when Bitmap is loaded.                                |
+| OnSave           | Callback when Bitmap is saved.                                 |
+| OnTextureLoad    | Callback when Texture2D is loaded.                             |
+| OnPathValidation | Callback when Path is validated, true indicates path is valid. |
 
 # Usage
 
@@ -118,6 +120,39 @@ string remoteImageUrl = "https://example.com/image.png";
 
 AsyncImage image = new AsyncImage(remoteImageUrl);
 image.Load();
+```
+
+## Validate Image Path
+
+```csharp
+string imageUrl = "https://example.com/image.png";
+//string imageUrl = "E:\image.png";
+
+AsyncImage image = new AsyncImage(imageUrl);
+
+image.OnPathValidation += (isValid) =>
+{
+    // retry/fallback logic
+};
+
+image.ValidatePath();
+
+if(image.IsPathValidated == null) // null indicates that ValidatePath() wasn't called.
+{
+    Debug.Log("Didn't validated the path.");
+}
+
+if(image.IsPathValidated == false)
+{
+    Debug.Log("The path is invalid.");
+    return;
+}
+
+if(image.IsPathValidated == true)
+{
+    Debug.Log("The path is valid.");
+    return;
+}
 ```
 
 ## Loading Texture

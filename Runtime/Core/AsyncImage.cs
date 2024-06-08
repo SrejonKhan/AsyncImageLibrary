@@ -28,12 +28,18 @@ namespace AsyncImageLibrary
 
         private bool shouldQueueTextureProcess = false;
         public bool ShouldQueueTextureProcess { get => shouldQueueTextureProcess; set => shouldQueueTextureProcess = value; }
-                
+
+        private bool? isPathValidated;
+        public bool? IsPathValidated { get => isPathValidated; internal set => isPathValidated = value; }
+
         private Texture2D texture;
         public Texture2D Texture { get => texture; internal set => texture = value; }
 
         private Action onTextureLoad;
         public Action OnTextureLoad { get => onTextureLoad; set => onTextureLoad = value; }
+
+        private Action<bool> onPathValidation;
+        public Action<bool> OnPathValidation { get => onPathValidation; set => onPathValidation = value; }
 
         private Action onLoad;
         public Action OnLoad { get => onLoad; set => onLoad = value; }
@@ -255,6 +261,14 @@ namespace AsyncImageLibrary
         public byte[] GetEncodedBuffer(SKEncodedImageFormat format, int quality)
         {
             return new ImageLoadSave().GetEncodedBuffer(this, format, quality);
+        }
+
+        /// <summary>
+        /// Validate assigned Path of Image without loading it.
+        /// </summary>
+        public void ValidatePath()
+        {
+            new ImageLoadSave().ValidatePath(this);
         }
     }
 }
