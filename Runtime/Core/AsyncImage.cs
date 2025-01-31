@@ -29,6 +29,9 @@ namespace AsyncImageLibrary
         private bool shouldQueueTextureProcess = false;
         public bool ShouldQueueTextureProcess { get => shouldQueueTextureProcess; set => shouldQueueTextureProcess = value; }
 
+        private bool shouldTextureBeReadable = false;
+        public bool ShouldTextureBeReadable { get => shouldTextureBeReadable; set => shouldTextureBeReadable = value; }
+        
         private bool? isPathValidated;
         public bool? IsPathValidated { get => isPathValidated; internal set => isPathValidated = value; }
 
