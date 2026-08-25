@@ -2,7 +2,7 @@
 
 Load Image asynchronously from external environment without blocking Main-Thread. And powerful SkiaSharp Library implemented and wrapped for better and convenient usage.
 
-- SkiaSharp Version - 2.88.3
+- SkiaSharp Version - 4.151.1
 - Unity Version - 2019.3.x or newer
 - Build Support (Tested Only) -
   - [x] Windows (IL2CPP)
