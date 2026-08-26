@@ -6,6 +6,25 @@ namespace AsyncImageLibrary
 {
     internal class ImageProcess
     {
+        internal SKSamplingOptions GetSamplingOptions(ResizeQuality quality)
+        {
+            // Old SKFilterQuality values were: None, Low, Medium, High
+            switch (quality)
+            {
+                case ResizeQuality.None:
+                    return new SKSamplingOptions(SKFilterMode.Nearest, SKMipmapMode.None);
+                case ResizeQuality.Low:
+                    return new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None);
+                case ResizeQuality.Medium:
+                    return new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
+                case ResizeQuality.High:
+                    // High quality used to imply bicubic-like resampling
+                    return new SKSamplingOptions(SKCubicResampler.Mitchell);
+                default:
+                    return SKSamplingOptions.Default;
+            }
+        }
+        
         public void Resize(AsyncImage asyncImage, int divideBy, ResizeQuality quality, Action onComplete)
         {
             if (divideBy <= 0)
@@ -18,8 +37,8 @@ namespace AsyncImageLibrary
                 return;
             }
             var resizeInfo = new SKImageInfo(asyncImage.Bitmap.Width / divideBy, asyncImage.Bitmap.Height / divideBy);
-            SKFilterQuality filterQuality = (SKFilterQuality)((int)quality);
-            asyncImage.Bitmap = asyncImage.Bitmap.Resize(resizeInfo, filterQuality);
+            var samplingOption = GetSamplingOptions(quality);
+            asyncImage.Bitmap = asyncImage.Bitmap.Resize(resizeInfo, samplingOption);
 
             // callback
             if (onComplete != null) UnityMainThread.Execute(onComplete);
@@ -37,30 +56,28 @@ namespace AsyncImageLibrary
                 return;
             }
             var resizeInfo = new SKImageInfo((int)targetDimensions.x, (int)targetDimensions.y);
-            SKFilterQuality filterQuality = (SKFilterQuality)((int)quality);
-            asyncImage.Bitmap = asyncImage.Bitmap.Resize(resizeInfo, filterQuality);
+            var samplingOption = GetSamplingOptions(quality);
+            asyncImage.Bitmap = asyncImage.Bitmap.Resize(resizeInfo, samplingOption);
 
             // callback
             if (onComplete != null) UnityMainThread.Execute(onComplete);
         }
 
-        internal void DrawText(AsyncImage asyncImage, string text, Vector2 position, SKPaint paint, string fontFamilyName, Action onComplete)
+        internal void DrawText(AsyncImage asyncImage, string text, Vector2 position, SKPaint paint, SKFont font, SKTextAlign textAlign, string fontFamilyName, Action onComplete)
         {
-            // If image isn't loaded yet, we will queue it for later
             if (asyncImage.Bitmap == null)
             {
-                asyncImage.queuedProcess += () => DrawText(asyncImage, text, position, paint, fontFamilyName, onComplete);
+                asyncImage.queuedProcess += () => DrawText(asyncImage, text, position, paint, font, textAlign, fontFamilyName, onComplete);
                 return;
             }
             SKCanvas canvas = new SKCanvas(asyncImage.Bitmap);
 
-            // Fallback font
-            if (paint.Typeface == null)
+            if (font.Typeface == null)
             {
-                paint.Typeface = SKTypeface.FromFamilyName(fontFamilyName);
+                font.Typeface = SKTypeface.FromFamilyName(fontFamilyName);
             }
-            // Draw Text
-            canvas.DrawText(text, position.x, position.y, paint);
+
+            canvas.DrawText(text, position.x, position.y, textAlign, font, paint);
 
             onComplete?.Invoke();
 
