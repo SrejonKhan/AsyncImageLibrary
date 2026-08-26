@@ -287,11 +287,11 @@ namespace AsyncImageLibrary
             if (!File.Exists(asyncImage.Path))
             {
                 asyncImage.IsPathValidated = false;
-                asyncImage.OnPathValidation.Invoke(false);
+                asyncImage.OnPathValidation?.Invoke(false);
                 return;
             }
             asyncImage.IsPathValidated = true;
-            asyncImage.OnPathValidation.Invoke(true);
+            asyncImage.OnPathValidation?.Invoke(true);
         }
 
         private IEnumerator DryUwrValidatePath(AsyncImage asyncImage)
