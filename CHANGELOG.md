@@ -1,5 +1,12 @@
 ## [0.2.5] - 26-08-2026
 
+### Changed
+
+- DrawText Method updated
+
+
+## [0.2.5] - 26-08-2026
+
 ### Added
 
 - SkiaSharp version bumped to 4.151.1
