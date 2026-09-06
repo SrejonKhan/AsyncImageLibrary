@@ -2,6 +2,13 @@
 
 ### Changed
 
+- Arm x64 native assets removed.
+
+
+## [0.2.8] - 06-06-2026
+
+### Changed
+
 - Missing iOS native assets added.
 
 ## [0.2.7] - 06-06-2026
