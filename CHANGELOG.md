@@ -1,3 +1,54 @@
+## [0.3.1] - 05-10-2026
+
+### Changed
+
+- SkiaSharp version bumped to 4.153.1
+
+
+## [0.3.0] - 05-10-2026
+
+### Changed
+
+- Dependencies re-imported
+
+
+## [0.2.9] - 06-06-2026
+
+### Changed
+
+- Arm x64 native assets removed.
+
+
+## [0.2.8] - 06-06-2026
+
+### Changed
+
+- Missing iOS native assets added.
+
+## [0.2.7] - 06-06-2026
+
+### Changed
+
+- Win x86 native assets removed.
+
+## [0.2.6] - 26-08-2026
+
+### Changed
+
+- DrawText Method updated
+
+
+## [0.2.5] - 26-08-2026
+
+### Added
+
+- SkiaSharp version bumped to 4.151.1
+
+### Changed
+
+- Bumped library version to 0.2.5.
+- Native Assets upgraded
+
 ## [0.2.0] - 18-12-2023
 
 ### Added
