@@ -1,3 +1,10 @@
+## [0.3.1] - 05-10-2026
+
+### Changed
+
+- SkiaSharp version bumped to 4.153.1
+
+
 ## [0.3.0] - 05-10-2026
 
 ### Changed
