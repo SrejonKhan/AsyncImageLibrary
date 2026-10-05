@@ -176,14 +176,14 @@ namespace AsyncImageLibrary
         /// <param name="position">Position in Bitmap</param>
         /// <param name="paint">SKPaint for Styling</param>
         /// <param name="onComplete">Callback upon DrawText completes.</param>
-        public void DrawText(string text, Vector2 position, SKPaint paint, Action onComplete = null)
-        {
-            if(paint == null)
-            {
-                throw new ArgumentNullException("SKPaint can not be null.");
-            }
-            new ImageProcess().DrawText(this, text, position, paint, "Arial", onComplete);
-        }
+        // public void DrawText(string text, Vector2 position, SKPaint paint, Action onComplete = null)
+        // {
+        //     if(paint == null)
+        //     {
+        //         throw new ArgumentNullException("SKPaint can not be null.");
+        //     }
+        //     new ImageProcess().DrawText(this, text, position, paint, "Arial", onComplete);
+        // }
 
         /// <summary>
         /// Draw Text on Bitmap
@@ -207,20 +207,22 @@ namespace AsyncImageLibrary
 
             var paint = new SKPaint();
             paint.Color = SKColor.FromHsv(h * 360, s * 100, v * 100);
-            paint.TextSize = textSize;
-            paint.TextAlign = (SKTextAlign)((int)textAlign);
-            paint.Typeface = SKTypeface.FromFamilyName(fontFamilyName);
+
+            var typeface = SKTypeface.FromFamilyName(fontFamilyName);
+            var skFont = new SKFont(typeface, textSize);
+
+            SKTextAlign skTextAlign = (SKTextAlign)((int)textAlign);
 
             // execute in same thread where loading task is ongoing
             if (isExecutingQueuedProcess)
             {
-                new ImageProcess().DrawText(this, text, position, paint, fontFamilyName, onComplete);
+                new ImageProcess().DrawText(this, text, position, paint, skFont, skTextAlign, fontFamilyName, onComplete);
             }
             // Called from main thread
             else
             {
                 ThreadPool.QueueUserWorkItem(cb =>
-                    new ImageProcess().DrawText(this, text, position, paint, fontFamilyName, onComplete));
+                    new ImageProcess().DrawText(this, text, position, paint, skFont, skTextAlign, fontFamilyName, onComplete));
             }
         }
 
