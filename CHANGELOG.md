@@ -1,3 +1,9 @@
+## [0.3.2] - 10-10-2026
+
+### Changed
+
+- SkiaSharp re-importated
+
 ## [0.3.2] - 08-10-2026
 
 ### Changed
