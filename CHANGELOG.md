@@ -1,3 +1,9 @@
+## [0.3.5] - 10-10-2026
+
+### Changed
+
+- Package re-imported
+
 ## [0.3.4] - 10-10-2026
 
 ### Changed
